@@ -1,38 +1,46 @@
 package com.example.myincremental;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Timer timer;
-    private Integer timerCount;
+//    private Timer timer;
+    long startTime = System.nanoTime();
+    long totalIncome = 0;
+    int levelBoost = 0;
+    PurchaseLevel lv1 = new PurchaseLevel("Sword", 1, 1);
+    PurchaseLevel lv2 = new PurchaseLevel("Shield", 2, 2);
+
+    TextView totalSumView;
+
+    Handler timerHandler = new Handler();
+    Runnable timerRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            long elapsed = (long) Math.ceil((System.nanoTime() - startTime) / 1000000);
+
+            totalIncome += (long) Math.ceil(elapsed * levelBoost / 1000);
+            totalSumView.setText(Long.toString(totalIncome));
+
+            timerHandler.postDelayed(this, 1000);
+            startTime = System.nanoTime();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        timerHandler.postDelayed(timerRunnable, 0);
+        totalSumView = findViewById(R.id.totalSum);
     }
 
     @Override
@@ -57,11 +65,17 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void buyFirst(View view) {
+    public void onLv1Buy(View view) {
+        lv1.increaseLevel();
+        totalIncome -= lv1.Cost;
+        totalSumView.setText(Long.toString(totalIncome));
+        levelBoost = (int) (levelBoost + lv1.Boost);
+    }
 
-        TextView totalSum = findViewById(R.id.totalSum);
-        totalSum.setText("increased!!");
-
-
+    public void onLv2Buy(View view) {
+        lv2.increaseLevel();
+        totalIncome -= lv2.Cost;
+        totalSumView.setText(Long.toString(totalIncome));
+        levelBoost = (int) (levelBoost + lv2.Boost);
     }
 }
